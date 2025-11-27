@@ -320,4 +320,181 @@ function showAssessment() {
 }
 
 console.log('TheraLink AI Matching System loaded');
+
+// ============ SMART MATCHING (K2 REASONING) ============
+
+const SMART_MATCH_URL = `${SUPABASE_URL}/functions/v1/smart-match`;
+
+// Check if case is complex enough to suggest smart matching
+function isComplexCase(assessment) {
+  const concerns = assessment.concerns || [];
+  const preferences = assessment.preferences || [];
+  const therapyStyles = assessment.therapy_styles || [];
+  
+  // Complex if: 3+ concerns, or high-specificity preferences
+  const highSpecificityTerms = ['lgbtqia', 'bipolar', 'trauma', 'ptsd', 'addiction', 'eating'];
+  const hasHighSpecificity = concerns.some(c => 
+    highSpecificityTerms.some(term => c.toLowerCase().includes(term))
+  );
+  
+  return concerns.length >= 3 || hasHighSpecificity || preferences.length >= 4;
+}
+
+// Get AI-powered smart matches
+async function getSmartMatches(assessment, therapists) {
+  try {
+    const response = await fetch(SMART_MATCH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        patientAssessment: assessment,
+        therapists: therapists,
+        mode: 'rank'
+      })
+    });
+    
+    const data = await response.json();
+    if (data.success && data.rankings) {
+      return data.rankings;
+    }
+    return null;
+  } catch (error) {
+    console.error('Smart match error:', error);
+    return null;
+  }
+}
+
+// Explain why a specific therapist was matched
+async function explainMatch(assessment, therapist) {
+  try {
+    const response = await fetch(SMART_MATCH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        patientAssessment: assessment,
+        therapists: [therapist],
+        mode: 'explain'
+      })
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      return {
+        explanation: data.explanation,
+        strengths: data.strengths || [],
+        considerations: data.considerations || [],
+        confidence: data.confidence || 0
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Explain match error:', error);
+    return null;
+  }
+}
+
+// Show explanation modal for a therapist match
+async function showMatchExplanation(therapistId) {
+  const user = supabaseClient.auth.user();
+  if (!user) return;
+  
+  // Show loading state
+  alert('Analyzing your match... This takes about 10 seconds.');
+  
+  const assessment = await getPatientAssessment(user.id);
+  const therapists = await getAllTherapists();
+  const therapist = therapists.find(t => t.id === therapistId);
+  
+  if (!assessment || !therapist) return;
+  
+  const explanation = await explainMatch(assessment, therapist);
+  
+  if (explanation) {
+    // Create explanation modal
+    const modal = document.createElement('div');
+    modal.className = 'explanation-modal';
+    modal.innerHTML = `
+      <div class="explanation-content">
+        <h3>Why ${therapist.name || 'This Therapist'} is a Good Match</h3>
+        <div class="confidence-badge">Match Confidence: ${explanation.confidence}%</div>
+        <p>${explanation.explanation}</p>
+        <h4>Strengths</h4>
+        <ul>${explanation.strengths.map(s => `<li>${s}</li>`).join('')}</ul>
+        <h4>Considerations</h4>
+        <ul>${explanation.considerations.map(c => `<li>${c}</li>`).join('')}</ul>
+        <button onclick="this.parentElement.parentElement.remove()">Close</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  } else {
+    alert('Could not generate explanation. Please try again.');
+  }
+}
+
+// Offer smart matching if case is complex
+function offerSmartMatching(assessment, fastResults) {
+  if (isComplexCase(assessment) || fastResults.length < 3 || fastResults[0]?.score < 15) {
+    const container = document.getElementById('therapist-results');
+    if (container) {
+      const offerDiv = document.createElement('div');
+      offerDiv.className = 'smart-match-offer';
+      offerDiv.innerHTML = `
+        <p>🧠 <strong>Want deeper analysis?</strong></p>
+        <p>Our AI can provide more personalized matching with detailed explanations.</p>
+        <button onclick="runSmartMatching()" class="btn-secondary">Run AI Analysis (~10 sec)</button>
+      `;
+      container.insertBefore(offerDiv, container.firstChild);
+    }
+  }
+}
+
+// Run smart matching on demand
+async function runSmartMatching() {
+  const user = supabaseClient.auth.user();
+  if (!user) return;
+  
+  const container = document.getElementById('therapist-results');
+  if (container) {
+    container.innerHTML = '<p class="loading">🧠 Running AI analysis... This takes about 10 seconds.</p>';
+  }
+  
+  const assessment = await getPatientAssessment(user.id);
+  const therapists = await getAllTherapists();
+  
+  if (!assessment || therapists.length === 0) {
+    container.innerHTML = '<p>Unable to run analysis. Please complete your assessment first.</p>';
+    return;
+  }
+  
+  const smartResults = await getSmartMatches(assessment, therapists);
+  
+  if (smartResults && smartResults.length > 0) {
+    // Merge smart results with therapist data
+    const mergedResults = smartResults.map(sr => {
+      const therapist = therapists.find(t => t.id === sr.therapist_id);
+      return { ...therapist, ...sr };
+    });
+    
+    container.innerHTML = `
+      <div class="smart-results-header">
+        <span class="ai-badge">🧠 AI-Powered Results</span>
+      </div>
+      ${mergedResults.slice(0, 5).map(t => `
+        <div class="therapist-card smart-matched">
+          <h3>${t.name || 'Therapist'}</h3>
+          <p class="match-score">AI Confidence: ${t.confidence}%</p>
+          <p class="personalized-reason">${t.personalized_reason}</p>
+          <p><strong>Specializations:</strong> ${(t.specializations || []).join(', ') || 'N/A'}</p>
+          <button onclick="showMatchExplanation('${t.id}')">Why This Match?</button>
+          <button onclick="bookAppointment('${t.id}')">Book Consultation</button>
+        </div>
+      `).join('')}
+    `;
+  } else {
+    container.innerHTML = '<p>AI analysis could not be completed. Showing standard results.</p>';
+    showMatches(); // Fallback to regular matching
+  }
+}
+
+console.log('TheraLink Smart Matching loaded');
 console.log('TheraLink app.js loaded');
