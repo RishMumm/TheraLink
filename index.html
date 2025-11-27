@@ -80,6 +80,60 @@
         </div>
     </section>
 
+    <!-- Assessment Section -->
+    <section id="assessment-section" class="assessment-page hidden">
+        <div class="assessment-container">
+            <h2>Mental Health Assessment</h2>
+            <p>Help us understand your needs to find your perfect therapist match.</p>
+            
+            <form id="assessmentForm" onsubmit="handleAssessmentSubmit(event)">
+                <div class="form-group">
+                    <h3>What concerns would you like to address?</h3>
+                    <div class="checkbox-grid">
+                        <label><input type="checkbox" name="concerns" value="anxiety"> Anxiety</label>
+                        <label><input type="checkbox" name="concerns" value="depression"> Depression</label>
+                        <label><input type="checkbox" name="concerns" value="stress"> Stress Management</label>
+                        <label><input type="checkbox" name="concerns" value="relationships"> Relationships</label>
+                        <label><input type="checkbox" name="concerns" value="trauma"> Trauma/PTSD</label>
+                        <label><input type="checkbox" name="concerns" value="grief"> Grief & Loss</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <h3>Preferred therapy approaches:</h3>
+                    <div class="checkbox-grid">
+                        <label><input type="checkbox" name="therapy_styles" value="CBT"> Cognitive Behavioral (CBT)</label>
+                        <label><input type="checkbox" name="therapy_styles" value="DBT"> Dialectical Behavior (DBT)</label>
+                        <label><input type="checkbox" name="therapy_styles" value="mindfulness"> Mindfulness-Based</label>
+                        <label><input type="checkbox" name="therapy_styles" value="psychodynamic"> Psychodynamic</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <h3>Additional preferences:</h3>
+                    <div class="checkbox-grid">
+                        <label><input type="checkbox" name="preferences" value="female"> Female Therapist</label>
+                        <label><input type="checkbox" name="preferences" value="male"> Male Therapist</label>
+                        <label><input type="checkbox" name="preferences" value="virtual"> Virtual Sessions</label>
+                        <label><input type="checkbox" name="preferences" value="evening"> Evening Hours</label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary">Find My Matches</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Matches Section -->
+    <section id="matches-section" class="matches-page hidden">
+        <div class="matches-container">
+            <h2>Your Therapist Matches</h2>
+            <p>Based on your assessment, here are your top matches:</p>
+            <div id="therapist-results" class="therapist-grid"></div>
+            <button onclick="showAssessment()" class="btn-secondary">Retake Assessment</button>
+        </div>
+    </section>
+
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
