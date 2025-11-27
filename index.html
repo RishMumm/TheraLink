@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TheraLink - Connect with Mental Health Professionals</title>
+    <meta name="description" content="Find and connect with licensed mental health therapists. AI-powered matching, secure messaging, and easy scheduling.">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo">TheraLink</div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#assessment">Assessment</a></li>
+            <li><a href="#therapists">Find Therapists</a></li>
+            <li><a href="#dashboard">Dashboard</a></li>
+        </ul>
+        <button id="authBtn" class="btn-primary">Sign In</button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Find Your Perfect Mental Health Match</h1>
+            <p>Connect with licensed therapists who understand your unique needs. Start your journey to better mental health today.</p>
+            <div class="hero-buttons">
+                <button class="btn-primary">Start Free Assessment</button>
+                <button class="btn-secondary">Browse Therapists</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="features">
+        <h2>How TheraLink Works</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="feature-icon">🤖</span>
+                <h3>AI Assessment</h3>
+                <p>Complete a confidential mental health assessment with our AI chatbot.</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🎯</span>
+                <h3>Smart Matching</h3>
+                <p>Get matched with therapists based on your specific needs.</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">📅</span>
+                <h3>Easy Scheduling</h3>
+                <p>Book appointments directly with real-time availability.</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🔒</span>
+                <h3>Secure Messaging</h3>
+                <p>HIPAA-compliant messaging with your therapist.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sign In Page -->
+    <section id="signInPage" class="auth-page hidden">
+        <div class="auth-container">
+            <div class="auth-branding">
+                <div class="brand-content">
+                    <h1>TheraLink</h1>
+                    <p>Your journey to better mental health starts here</p>
+                </div>
+            </div>
+            <div class="auth-form-side">
+                <form id="authPageForm">
+                    <h2 id="authPageTitle">Sign In</h2>
+                    <input type="email" id="authPageEmail" placeholder="Email address" required>
+                    <input type="password" id="authPagePassword" placeholder="Password" required>
+                    <button type="submit" id="authPageSubmit" class="btn-primary">Continue</button>
+                    <p class="auth-toggle">Don't have an account? <a href="#" id="toggleAuthPage">Sign up</a></p>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</body>
+</html>
