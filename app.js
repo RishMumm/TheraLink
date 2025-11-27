@@ -1,4 +1,10 @@
 // ============ SUPABASE CONFIGURATION ============
+// SECURITY NOTE: The SUPABASE_ANON_KEY below is intentionally public.
+// This "anon" key is designed by Supabase to be used in client-side code.
+// Security is enforced through Row Level Security (RLS) policies on all tables.
+// Sensitive operations (like OpenAI calls) use Edge Functions with service_role key.
+// The service_role key is stored in Supabase secrets, NEVER in client code.
+// For more info: https://supabase.com/docs/guides/api/api-keys
 const SUPABASE_URL = 'https://igdkkjdtfadagmtfqzmf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlnZGtramR0ZmFkYWdtdGZxem1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI2NzI4NjYsImV4cCI6MjA0ODI0ODg2Nn0.6rAT2FaAMQ2MG4QsOGvd2D-2EXLfnZnBpZBJtgfU-bY';
 
