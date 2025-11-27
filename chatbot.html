@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TheraLink - AI Mental Health Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .chatbot-page {
+            min-height: 100vh;
+            background: var(--background-beige);
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .chat-header h1 {
+            color: var(--primary-purple);
+            margin-bottom: 0.5rem;
+        }
+        .chat-header p {
+            color: var(--text-light);
+        }
+        .chat-messages {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .message.bot .message-avatar {
+            background: var(--purple-gradient);
+        }
+        .message.user .message-avatar {
+            background: var(--primary-teal);
+        }
+        .message-content {
+            max-width: 70%;
+            padding: 1rem;
+            border-radius: 16px;
+        }
+        .message.bot .message-content {
+            background: #f0f0f0;
+            border-bottom-left-radius: 4px;
+        }
+        .message.user .message-content {
+            background: var(--primary-purple);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-input-container {
+            display: flex;
+            gap: 1rem;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+        }
+        .chat-input:focus {
+            border-color: var(--primary-purple);
+        }
+        .send-btn {
+            padding: 1rem 2rem;
+            background: var(--purple-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .send-btn:hover {
+            opacity: 0.9;
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fff3cd;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-page">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="logo">TheraLink</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html#assessment">Assessment</a></li>
+                <li><a href="scheduling.html">Schedule</a></li>
+                <li><a href="chatbot.html" class="active">AI Chat</a></li>
+            </ul>
+        </nav>
+
+        <div class="chat-container">
+            <div class="chat-header">
+                <h1>🧠 AI Mental Health Assistant</h1>
+                <p>I'm here to listen and provide supportive guidance. How are you feeling today?</p>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        Hello! I'm your TheraLink AI assistant. I'm here to provide a safe space for you to express your thoughts and feelings. While I'm not a replacement for professional therapy, I can offer supportive conversation and coping strategies. How can I help you today?
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Type your message here..." onkeypress="handleKeyPress(event)">
+                <button class="send-btn" onclick="sendMessage()">Send</button>
+            </div>
+
+            <div class="disclaimer">
+                ⚠️ <strong>Important:</strong> This AI assistant is for supportive conversation only and is not a substitute for professional mental health care. If you're in crisis, please call 988 (Suicide & Crisis Lifeline) or text HOME to 741741.
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+    <script>
+        // AI Chatbot responses (simple pattern matching for MVP)
+        const responses = {
+            greeting: ["Hello! How are you feeling today?", "Hi there! I'm here to listen. What's on your mind?"],
+            anxiety: ["I hear that you're feeling anxious. That's completely valid. Would you like to try a quick breathing exercise together?", "Anxiety can be overwhelming. Remember, it's okay to take things one moment at a time. What's causing you the most worry right now?"],
+            depression: ["I'm sorry you're feeling down. Your feelings are valid. Have you been able to do anything that brings you comfort today?", "Depression can make everything feel harder. You're not alone in this. Would you like to talk about what's been weighing on you?"],
+            stress: ["It sounds like you're under a lot of stress. What's one small thing you could do right now to take care of yourself?", "Stress can build up quickly. Let's break things down - what feels most urgent to address?"],
+            sleep: ["Sleep issues can really affect how we feel. Have you tried establishing a calming bedtime routine?", "Rest is so important. What thoughts tend to keep you awake at night?"],
+            default: ["Thank you for sharing that with me. Can you tell me more about how that makes you feel?", "I appreciate you opening up. What support would be most helpful for you right now?", "That sounds challenging. How have you been coping with this?"]
+        };
+
+        function getResponse(message) {
+            const lower = message.toLowerCase();
+            if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey')) {
+                return responses.greeting[Math.floor(Math.random() * responses.greeting.length)];
+            } else if (lower.includes('anxious') || lower.includes('anxiety') || lower.includes('worried') || lower.includes('panic')) {
+                return responses.anxiety[Math.floor(Math.random() * responses.anxiety.length)];
+            } else if (lower.includes('depress') || lower.includes('sad') || lower.includes('hopeless') || lower.includes('empty')) {
+                return responses.depression[Math.floor(Math.random() * responses.depression.length)];
+            } else if (lower.includes('stress') || lower.includes('overwhelm') || lower.includes('too much')) {
+                return responses.stress[Math.floor(Math.random() * responses.stress.length)];
+            } else if (lower.includes('sleep') || lower.includes('insomnia') || lower.includes('tired') || lower.includes('exhausted')) {
+                return responses.sleep[Math.floor(Math.random() * responses.sleep.length)];
+            }
+            return responses.default[Math.floor(Math.random() * responses.default.length)];
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Simulate typing delay
+            setTimeout(() => {
+                const response = getResponse(message);
+                addMessage(response, 'bot');
+            }, 1000);
+        }
+
+        function addMessage(text, type) {
+            const container = document.getElementById('chatMessages');
+            const avatar = type === 'bot' ? '🤖' : '👤';
+            const messageHTML = `
+                <div class="message ${type}">
+                    <div class="message-avatar">${avatar}</div>
+                    <div class="message-content">${text}</div>
+                </div>
+            `;
+            container.innerHTML += messageHTML;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>
