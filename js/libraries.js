@@ -12,7 +12,7 @@
  * - Feather Icons: Professional vector icons
  * 
  * APIs INTEGRATED:
- * - Quotable API: Inspirational quotes
+ * - ZenQuotes API: Inspirational quotes
  * - Advice Slip API: Wellness tips
  * - OpenStreetMap/Nominatim: Geocoding
  * - SendGrid: Newsletter emails (via Edge Function)
@@ -102,10 +102,10 @@ function initAppointmentPicker(selector, options = {}) {
 
 async function getInspirationalQuote() {
     try {
-        const resp = await fetch('https://api.quotable.io/random?tags=inspirational|wisdom');
+        const resp = await fetch('https://zenquotes.io/api/random');
         if (!resp.ok) throw new Error('Quote API failed');
         const data = await resp.json();
-        return { quote: data.content, author: data.author };
+        return { quote: data[0].q, author: data[0].a };
     } catch (e) {
         return { quote: 'Take care of your mind, it takes care of you.', author: 'TheraLink' };
     }
